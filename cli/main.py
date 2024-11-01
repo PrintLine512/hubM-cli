@@ -44,6 +44,8 @@ def cli(ctx, debug, log_file):
 
 
 
+
+
 # Добавление команд
 cli.add_command(group_cli)
 cli.add_command(usb_cli)
