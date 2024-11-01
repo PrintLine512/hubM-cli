@@ -53,6 +53,5 @@ cli.add_command(config_cli)
 def main():
     cli(obj={})
 
-
 if __name__ == '__main__':
     main()
