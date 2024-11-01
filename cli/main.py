@@ -1,17 +1,24 @@
 import click
+#from commands.user_commands import user_cli
+#from commands.config_commands import config_cli
+from commands import config_cli, user_cli, usb_cli, group_cli
 import logging
 import sys
-import os
-from pathlib import Path
 
 
-# Настройка логгера для удобного логирования
-def setup_logging(log_level=logging.INFO):
+# Настройка логгера для CLI
+def setup_logging(log_level=logging.INFO, log_file=None):
     logger = logging.getLogger(__name__)
     handler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
+    if log_file:
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
     logger.setLevel(log_level)
     return logger
 
@@ -19,73 +26,31 @@ def setup_logging(log_level=logging.INFO):
 logger = setup_logging()
 
 
-# Опции глобальной настройки (например, уровень логирования)
 @click.group()
 @click.option('--debug', is_flag=True, help="Включить режим отладки.")
+@click.option('--log-file', type=click.Path(), help="Файл для сохранения логов.")
 @click.pass_context
-def cli(ctx, debug):
+def cli(ctx, debug, log_file):
     """
-    Основная точка входа для CLI.
+    Основная точка входа CLI. Используйте --help для справки.
     """
     ctx.ensure_object(dict)
     if debug:
         logger.setLevel(logging.DEBUG)
         logger.debug("Режим отладки включен")
 
-    # Опционально: можно добавлять переменные окружения или настройки
-    # в контекст, чтобы иметь к ним доступ из подкоманд
-    ctx.obj[ 'DEBUG' ] = debug
+    if log_file:
+        setup_logging(log_level=logging.DEBUG if debug else logging.INFO, log_file=log_file)
 
 
-@cli.command()
-@click.argument('filename', type=click.Path(exists=True))
-@click.option('--output', '-o', type=click.Path(), default='output.txt', help="Файл для вывода.")
-@click.option('--verbose', '-v', is_flag=True, help="Подробный вывод.")
-def process(filename, output, verbose):
-    """
-    Команда для обработки файла FILENAME.
-    """
-    if verbose:
-        click.echo(f"Обработка файла: {filename}")
-
-    try:
-        # Пример обработки файла
-        with open(filename, 'r') as f:
-            data = f.read()
-
-        # Сохранение результата
-        with open(output, 'w') as f:
-            f.write(data)
-
-        click.echo(f"Результат сохранен в {output}")
-
-    except Exception as e:
-        logger.error(f"Ошибка обработки файла: {e}")
-        sys.exit(1)
+# Добавление команд
+cli.add_command(group_cli)
+cli.add_command(usb_cli)
+cli.add_command(user_cli)
+cli.add_command(config_cli)
 
 
-@cli.command()
-@click.option('--name', prompt='Ваше имя', help="Имя пользователя.")
-@click.option('--age', prompt='Ваш возраст', help="Возраст пользователя.", type=int)
-def greet(name, age):
-    """
-    Приветственная команда, выводящая приветствие для пользователя.
-    """
-    if age < 18:
-        click.echo(f"Привет, {name}! Ты молод!")
-    else:
-        click.echo(f"Привет, {name}! Добро пожаловать!")
-
-
-@cli.command()
-def setup():
-    """
-    Команда для первоначальной настройки.
-    """
-    click.echo("Настройка завершена.")
-
-
-# Основной запуск CLI
+# Запуск CLI
 def main():
     cli(obj={})
 
