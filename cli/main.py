@@ -50,6 +50,7 @@ cli.add_command(user_cli)
 cli.add_command(config_cli)
 
 
+
 # Запуск CLI
 def main():
     cli(obj={})
