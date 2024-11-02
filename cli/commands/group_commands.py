@@ -1,6 +1,6 @@
 import click
 from . import handle_errors
-from cli.templates.models import server_model
+from templates.models import server_model
 import logging
 
 logger = logging.getLogger(__name__)
