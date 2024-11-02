@@ -3,6 +3,7 @@ from . import handle_errors
 import logging
 import sys
 from pathlib import Path
+import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +16,17 @@ def config_cli():
 
 @handle_errors()
 @config_cli.command()
-@click.option('--config-path', type=click.Path(), default='~/.mycli/config.json', show_default=True,
-              help="Путь к файлу конфигурации.")
-def setup(config_path):
+#@click.option('--config-path', type=click.Path(), default='~/.mycli/config.json', show_default=True,
+#              help="Путь к файлу конфигурации.")
+def setup():
+    try:
+        subprocess.run([ "HUB-CORE", "-b", "-c", "/usr/local/etc/virtualhere/groups/Test.ini"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sys.exit()
+    except Exception as e:
+        sys.exit(1)
+
+
+def setup2(config_path):
     """Первоначальная настройка CLI. Создает конфигурационный файл."""
     config_path = Path(config_path).expanduser()
 
