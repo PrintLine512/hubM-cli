@@ -18,9 +18,6 @@ def group_cli():
 @click.option('--name', help="Название группы.")
 def start(name):
     """Приветствие пользователя с учетом возраста."""
-    if age < 18:
-        click.secho(f"Привет, {name}! Ты молод!", fg="cyan")
-    else:
-        click.secho(f"Привет, {name}! Добро пожаловать!", fg="yellow")
 
-    logger.info(f"Приветствие отправлено для пользователя: {name}, возраст: {age}")
+
+    logger.info(f"Приветствие отправлено для пользователя: {name}, возраст: ")
