@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.util import assert_arg_type
 
 from . import handle_errors
-from templates.models import server_model
+from templates.models import server_model, engine
 from config import db_url
 
 import logging
@@ -40,7 +40,6 @@ def start(name):
 @click.option('--name', help="Название группы.")
 def conf(name):
 
-    engine = sqlalchemy.create_engine(db_url, pool_size=20, max_overflow=0, pool_recycle=10, pool_timeout=10)
     Session = sessionmaker(bind=engine)
 
     session = Session()
