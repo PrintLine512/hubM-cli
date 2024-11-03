@@ -45,3 +45,4 @@ def conf(name):
 
     session = Session()
     server = session.query(server_model).filter_by(name=name).first()
+    print(server.name)
