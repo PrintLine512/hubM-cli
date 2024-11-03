@@ -6,4 +6,4 @@ engine = create_engine(db_url)
 Base = automap_base()
 Base.metadata.reflect(bind=engine)
 
-server_model = Base.classes.servers
+server_model = Base.classes['servers']
