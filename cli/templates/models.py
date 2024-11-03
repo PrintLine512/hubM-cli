@@ -4,6 +4,7 @@ from config import db_url
 
 engine = create_engine(db_url)
 Base = automap_base()
-Base.metadata.reflect(bind=engine)
+Base.prepare(engine, reflect=True)
 
 server_model = Base.classes['servers']
+
