@@ -45,5 +45,5 @@ def conf(name):
     Session = sessionmaker(bind=engine)
 
     session = Session()
-    server = session.query(Base.classes.serversl).filter_by(name=name).first()
+    server = session.query(Base.classes.servers).filter_by(name=name).first()
     print(server.name)
