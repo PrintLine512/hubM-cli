@@ -43,6 +43,4 @@ def conf(name):
     Session = sessionmaker(bind=engine)
 
     session = Session()
-
     server = session.query(server_model).filter_by(name=name).first()
-    print(server.name)
