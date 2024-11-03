@@ -6,6 +6,8 @@ from sqlalchemy.util import assert_arg_type
 
 from . import handle_errors
 from templates.models import server_model
+from config import db_url
+
 import logging
 import subprocess, sys
 
@@ -37,7 +39,6 @@ def start(name):
 @group_cli.command()
 @click.option('--name', help="Название группы.")
 def conf(name):
-    db_url = 'postgresql://psql_user:irRaWUjZQ2bo9pwS7qA7@localhost:5432/usbhub_db'
 
     engine = sqlalchemy.create_engine(db_url, pool_size=20, max_overflow=0, pool_recycle=10, pool_timeout=10)
     Session = sessionmaker(bind=engine)
