@@ -41,8 +41,8 @@ def start(name):
 def conf(name):
 
     engine = sqlalchemy.create_engine(db_url, pool_size=20, max_overflow=0, pool_recycle=10, pool_timeout=10)
-    #Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine)
 
-    #session = Session()
-    #server = session.query(server_model).filter_by(name=name).first()
-    #print(server.name)
+    session = Session()
+    server = session.query(server_model).filter_by(name=name).first()
+    print(server.name)
