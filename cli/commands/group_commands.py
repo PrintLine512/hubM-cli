@@ -6,7 +6,6 @@ from sqlalchemy.util import assert_arg_type
 
 from . import handle_errors
 from templates.models import server_model
-from templates.models import Base
 from config import db_url
 
 import logging
@@ -45,5 +44,5 @@ def conf(name):
     Session = sessionmaker(bind=engine)
 
     session = Session()
-    server = session.query(Base.classes.servers).filter_by(name=name).first()
-    print(server.name)
+    #server = session.query(server_model).filter_by(name=name).first()
+    #print(server.name)
