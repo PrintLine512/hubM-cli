@@ -1,6 +1,10 @@
-import click
-from . import handle_errors
+mport click
+#from . import handle_errors
 import logging
+# from . import handle_errors
+import logging
+
+import click
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +14,7 @@ def user_cli():
     """Группа команд для работы с пользователями."""
     pass
 
-@handle_errors()
+#@handle_errors()
 @user_cli.command()
 @click.option('--name', prompt='Ваше имя', help="Имя пользователя.")
 @click.option('--age', prompt='Ваш возраст', type=int, help="Возраст пользователя.")

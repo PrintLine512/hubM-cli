@@ -1,45 +1,59 @@
-import click
-from . import handle_errors
+import configparser
+# from . import handle_work
 import logging
-import sys
 from pathlib import Path
-import subprocess
+
+import click
 
 logger = logging.getLogger(__name__)
 
 
 @click.group(name="config")
-def config_cli():
+@click.pass_context
+def config_cli(ctx):
     """Группа команд для настройки."""
-    pass
+    ctx.ensure_object(dict)  # Инициализация контекста как словаря
 
 
-@handle_errors()
+#@handle_work
 @config_cli.command()
-#@click.option('--config-path', type=click.Path(), default='~/.mycli/config.json', show_default=True,
-#              help="Путь к файлу конфигурации.")
-def setup():
-    try:
-        subprocess.run([ "HUB-CORE", "-b", "-c", "/usr/local/etc/virtualhere/groups/Test.ini"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        sys.exit()
-    except Exception as e:
-        sys.exit(1)
+@click.option('--path', type=click.Path(), default='/etc/hubm', show_default=True,
+              help="Директория hubM.", prompt=("Введите путь к директории"))
+@click.option('--driver', default='postgresql', show_default=True, help="Драйвер для подключения к базе данных.", prompt = ("Введите driver"))
+@click.option('--user', default='psql_user', show_default=True, help="Пользователь для подключения к базе данных.", prompt = ("Введите пользователя"))
+@click.option('--password', default='irRaWUjZQ2bo9pwS7qA7', show_default=True, help="Пароль для подключения к базе данных.", prompt = ("Введите пароль"))
+@click.option('--address', default='localhost', show_default=True, help="Адрес для подключения к базе данных.", prompt = ("Введите адрес"))
+@click.option('--port', default='5432', type=click.IntRange(20,65535), show_default=True, help="TCP-порт для подключения к базе данных.", prompt = ("Введите порт"))
+@click.option('--db-name', default='usbhub_db', show_default=True, help="Название базы данных для подключения к базе данных.", prompt = ("Введите название базы данных"))
+@click.pass_context
+def setup(ctx, path, driver, user, password, address, port, db_name):
+    """Первичная настройка"""
+    base_path = Path(path)
+    config = configparser.ConfigParser()
+    dirs_to_create = ['groups', 'logs']
+    for dir_name in dirs_to_create:
+        dir_path = base_path / dir_name
+        dir_path.mkdir(parents=True, exist_ok=True)
+        if ctx.obj['DEBUG']:
+            click.secho(f'Папка {dir_path} успешно создана.', fg='green')
 
+    config[ 'DEFAULT' ] = {
+        'db_url': f'{driver}://{user}:{password}@{address}:{port}/{db_name}'
+    }
 
-def setup2(config_path):
-    """Первоначальная настройка CLI. Создает конфигурационный файл."""
-    config_path = Path(config_path).expanduser()
+    if ctx.obj[ 'DEBUG' ]:
+        click.secho(f"Сгенерирован файл конфигурации:", fg='green')
+#        for section in config.sections():
+#            click.secho(f"[{section}]", fg='green')
+#            for key, value in config.items(section):
+#                click.secho(f"{key}: {value}", fg='green')
+#            # Если у вас нет других секций, выводите значения из DEFAULT
+        click.secho("[DEFAULT]", fg="yellow")
+        for key, value in config[ 'DEFAULT' ].items():
+            click.secho(f"{key} = {value}", fg='yellow')
 
-    if not config_path.parent.exists():
-        config_path.parent.mkdir(parents=True)
-
-    try:
-        with open(config_path, 'w') as f:
-            f.write('{"configured": true}')
-        click.secho(f"Конфигурация завершена. Файл создан в {config_path}", fg="green")
-        logger.info(f"Конфигурация завершена: {config_path}")
-
-    except IOError as e:
-        logger.error(f"Ошибка записи конфигурации: {str(e)}")
-        click.secho(f"Ошибка записи конфигурации: {str(e)}", fg="red")
-        sys.exit(1)
+    config_path = base_path / "config.ini"
+    with open(config_path, 'w') as configfile:
+        config.write(configfile)
+    if ctx.obj[ 'DEBUG' ]:
+        click.secho(f"Конфигурационный файл '{config_path}' успешно создан!", fg='green')

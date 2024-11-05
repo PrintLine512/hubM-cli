@@ -1,27 +1,26 @@
-from importlib import import_module
-import sqlalchemy
-import click
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.util import assert_arg_type
-
-from . import handle_errors
-from templates.models import server_model, engine
-from config import db_url
-
 import logging
-import subprocess, sys
+import subprocess
+import sys
+
+import click
+
+from models import Servers
+from . import handle_work
 
 logger = logging.getLogger(__name__)
 
-
+#@handle_work
 @click.group(name="group")
-def group_cli():
+@click.argument("group_name")
+@click.pass_context
+def group_cli(ctx, group_name):
     """Группа команд для работы с группами."""
-    pass
+    ctx.obj['NAME'] = group_name  # Сохраняем значение параметра `name` в контексте
 
 
 
-@handle_errors()
+
+@handle_work
 @group_cli.command()
 @click.option('--name', help="Название группы.")
 def start(name):
@@ -35,13 +34,36 @@ def start(name):
         sys.exit(1)
 
 
-@handle_errors()
 @group_cli.command()
-@click.option('--name', help="Название группы.")
-def conf(name):
+@handle_work
+@click.option('--tcp-port', show_default=True, help="TCP-порт для подключения к базе данных.", prompt = ("Введите порт"))
+def con(ctx, session, tcp_port):
+    """Crонфигуровать сервер"""
+    name = ctx.obj.get('NAME')  # Получаем значение `name` из контекста
 
-    Session = sessionmaker(bind=engine)
+    server = session.query(Servers).filter_by(name=name).first()
+    if server is None:
+        raise FileNotFoundError(f"Сервер '{name}' не найден.")
+        click.secho(f"Группа \"{name}\" не найдена!", fg="red")
+        sys.exit(1)
+    print(server.tcp_port)
+    server.tcp_port = tcp_port
+    session.commit()
+    print(name, tcp_port)
 
-    session = Session()
-    server = session.query(server_model).filter_by(name=name).first()
-    print(server.name)
+
+@group_cli.command()
+@handle_work
+def show(ctx, session):
+    """Текущая конфигурация сервера"""
+    name = ctx.obj.get('NAME')  # Получаем значение `name` из контекста
+
+    server = session.query(Servers).filter_by(name=name).first()
+    if server is None:
+        raise FileNotFoundError(f"Сервер '{name}' не найден.")
+        click.secho(f"Группа \"{name}\" не найдена!", fg="red")
+        sys.exit(1)
+    print(server.tcp_port)
+    server.tcp_port = tcp_port
+    session.commit()
+    print(name, tcp_port)

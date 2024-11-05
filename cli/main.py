@@ -1,9 +1,11 @@
-import click
-#from commands.user_commands import user_cli
-#from commands.config_commands import config_cli
-from commands import config_cli, user_cli, usb_cli, group_cli
 import logging
 import sys
+
+import click
+
+# from commands.user_commands import user_cli
+# from commands.config_commands import config_cli
+from commands import config_cli, user_cli, usb_cli, group_cli
 
 
 # Настройка логгера для CLI
@@ -35,6 +37,7 @@ def cli(ctx, debug, log_file):
     Основная точка входа CLI. Используйте --help для справки.
     """
     ctx.ensure_object(dict)
+    ctx.obj['DEBUG'] = debug # Сохраняем значение параметра `name` в контексте
     if debug:
         logger.setLevel(logging.DEBUG)
         logger.debug("Режим отладки включен")

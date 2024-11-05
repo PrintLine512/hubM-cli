@@ -2,14 +2,22 @@
 name = "cli"
 version = "0.1.0"
 description = ""
-authors = ["mv.alekseev <paralet.games@gmail.com>"]
+authors = ["PrintLine512 <paralet.games@gmail.com>"]
 readme = "README.md"
+package-mode = true
+#packages = [{ include = "hubm_admin_panel\\User" }]
+repository = "https://github.com/python-poetry/poetry"
+documentation = "https://python-poetry.org/docs/"
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
 click = "^8.1.7"
 sqlalchemy = "^2.0.36"
 psycopg2 = "^2.9.10"
+
+[tool.poetry.scripts]
+hubm-cli = "cli.main:main"
 
 
 [build-system]
