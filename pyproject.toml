@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "cli"
+name = "hubm-cli"
 version = "0.1.0"
 description = ""
 authors = ["PrintLine512 <paralet.games@gmail.com>"]
@@ -11,10 +11,11 @@ documentation = "https://python-poetry.org/docs/"
 
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 click = "^8.1.7"
 sqlalchemy = "^2.0.36"
 psycopg2 = "^2.9.10"
+requests = "^2.32.3"
 
 [tool.poetry.scripts]
 hubm-cli = "cli.main:main"
