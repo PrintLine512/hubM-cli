@@ -1,11 +1,9 @@
-import datetime
+from sqlalchemy import ARRAY, BigInteger, Boolean, CheckConstraint, Computed, Date, DateTime, ForeignKeyConstraint, Index, Integer, PrimaryKeyConstraint, Sequence, SmallInteger, String, Text, UniqueConstraint, text
+from sqlalchemy.dialects.postgresql import INET, INTERVAL, TIMESTAMP
 from typing import Any, List, Optional
 
-from sqlalchemy import ARRAY, BigInteger, Boolean, CheckConstraint, Computed, Date, DateTime, ForeignKeyConstraint, \
-    Index, Integer, PrimaryKeyConstraint, Sequence, SmallInteger, String, Text, UniqueConstraint, text
-from sqlalchemy.dialects.postgresql import INET, INTERVAL, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-
+import datetime
 
 class Base(DeclarativeBase):
     pass
@@ -102,6 +100,7 @@ class UsbPorts(Base):
 
     id: Mapped[int] = mapped_column(Integer, Sequence('usb_ports_port_id_seq'), primary_key=True)
     bus: Mapped[str] = mapped_column(String(30))
+    active: Mapped[bool] = mapped_column(Boolean, server_default=text('true'))
     server_id: Mapped[Optional[int]] = mapped_column(Integer)
     virtual_port: Mapped[Optional[str]] = mapped_column(String(50), comment='Виртуальный номер порта используемый для управления')
     name: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'undefined'::character varying"))
@@ -170,15 +169,15 @@ class Logs(Base):
 class UserUsbRelation(Base):
     __tablename__ = 'user_usb_relation'
     __table_args__ = (
-        ForeignKeyConstraint(['port_id'], ['usb_ports.id'], name='user_usb_access_port_id_fkey'),
-        ForeignKeyConstraint(['user_id'], ['users.id'], name='user_usb_access_user_id_fkey'),
-        PrimaryKeyConstraint('user_id', 'port_id', name='user_usb_uniq'),
-        Index('fki_user_usb_relation_user_id_to_server_reletion_fkey', 'user_id', 'server_id')
+        ForeignKeyConstraint(['port_id'], ['usb_ports.id'], name='user_usb_relation_port_id_fkey'),
+        ForeignKeyConstraint(['user_id'], ['users.id'], name='user_usb_relation_user_id_fkey'),
+        PrimaryKeyConstraint('id', name='user_usb_relation_pkey'),
+        UniqueConstraint('user_id', 'port_id', name='user_usb_relation_uniq')
     )
 
-    user_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    port_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    server_id: Mapped[Optional[int]] = mapped_column(Integer)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer)
+    port_id: Mapped[int] = mapped_column(Integer)
 
     port: Mapped['UsbPorts'] = relationship('UsbPorts', back_populates='user_usb_relation')
     user: Mapped['Users'] = relationship('Users', back_populates='user_usb_relation')

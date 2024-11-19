@@ -38,19 +38,15 @@ def start(name):
 @group_cli.command()
 @click.confirmation_option(prompt="Are you sure? Group will be reconfigured with selected params and restarted.")
 @handle_work
-@click.option('--tcp-port', '-p', show_default=True, type=click.IntRange(20, 65535), help="TCP-порт для подключения к базе данных.")
 @click.option('--usb', '-u', type=click.STRING, multiple=True, help="Virtual USB-порт. Может задаваться несколько раз.")
 @click.option('--usb-action', type=click.Choice(['set','add','remove']), default='add', show_default=True, help="TCP-порт для подключения к базе данных.")
-def conf(ctx, session, tcp_port, usb, usb_action):
+def conf(ctx, session, usb, usb_action):
     """Crонфигурировать сервер"""
     name = ctx.obj.get('NAME')  # Получаем значение `name` из контекста
 
     server = session.query(Servers).filter_by(name=name).first()
     if server is None:
         raise FileNotFoundError(f"Группа '{name}' не найдена.")
-
-    if tcp_port:
-        server.tcp_port = tcp_port
 
 
     if usb_action == "remove":
