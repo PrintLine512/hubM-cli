@@ -1,3 +1,4 @@
+from typing import Literal
 
 def api_request(uri, new_headers=None, new_data=None,
                 method: Literal["GET", "PUT", "POST", "DELETE"] = "GET",

@@ -3,8 +3,9 @@ import subprocess
 import sys
 
 import click
+from click import prompt
 
-from models import Servers
+from models import Servers, UsbPorts
 from . import handle_work, Group
 
 logger = logging.getLogger(__name__)
@@ -35,20 +36,57 @@ def start(name):
 
 
 @group_cli.command()
+@click.confirmation_option(prompt="Are you sure? Group will be reconfigured with selected params and restarted.")
 @handle_work
-@click.option('--tcp-port', show_default=True, help="TCP-порт для подключения к базе данных.", prompt = ("Введите порт"))
-def con(ctx, session, tcp_port):
-    """Crонфигуровать сервер"""
+@click.option('--tcp-port', '-p', show_default=True, type=click.IntRange(20, 65535), help="TCP-порт для подключения к базе данных.")
+@click.option('--usb', '-u', type=click.STRING, multiple=True, help="Virtual USB-порт. Может задаваться несколько раз.")
+@click.option('--usb-action', type=click.Choice(['set','add','remove']), default='add', show_default=True, help="TCP-порт для подключения к базе данных.")
+def conf(ctx, session, tcp_port, usb, usb_action):
+    """Crонфигурировать сервер"""
     name = ctx.obj.get('NAME')  # Получаем значение `name` из контекста
 
     server = session.query(Servers).filter_by(name=name).first()
     if server is None:
-        raise FileNotFoundError(f"Сервер '{name}' не найден.")
+        raise FileNotFoundError(f"Группа '{name}' не найдена.")
 
-    print(server.tcp_port)
-    server.tcp_port = tcp_port
-    session.commit()
-    print(name, tcp_port)
+    if tcp_port:
+        server.tcp_port = tcp_port
+
+
+    if usb_action == "remove":
+        for virtual_port in usb:
+            port = session.query(UsbPorts).filter_by(virtual_port=virtual_port).first()
+            if port is None:
+                raise ValueError(f"USB with virtual port '{virtual_port}' doesnt exist ")
+            if port.server_id == server.id:
+                server.usb_ports.remove(port)
+            else:
+                raise ValueError(f"Server '{name}' doesnt have usb with virtual port {virtual_port}.'")
+    elif usb_action == "add":
+        for virtual_port in usb:
+            port = session.query(UsbPorts).filter_by(virtual_port=virtual_port).first()
+            if port is None:
+                raise ValueError(f"USB with virtual port '{virtual_port}' doesnt exist ")
+            if port.server_id is None or port.server_id == server.id:
+                server.usb_ports.append(port)
+            else:
+                raise ValueError(f"USB with virtual port '{virtual_port}' already claimed.")
+    elif usb_action == "set":
+        new_ports = []
+        for virtual_port in usb:
+            port = session.query(UsbPorts).filter_by(virtual_port=virtual_port).first()
+            if port is None:
+                raise ValueError(f"USB with virtual port '{virtual_port}' doesnt exist ")
+            if port.server_id is None or port.server_id == server.id:
+                new_ports.append(port)
+            else:
+                raise ValueError(f"USB with virtual port '{virtual_port}' already claimed.")
+        server.usb_ports = new_ports
+
+
+    group = Group(server.name, server.tcp_port, server.usb_ports)
+    click.secho(group)
+
 
 
 @group_cli.command()
@@ -61,8 +99,5 @@ def show(ctx, session):
     if server is None:
         raise FileNotFoundError(f"Сервер '{name}' не найден.")
 
-    group = Group(server.name, server.tcp_port, [server.usb_ports])
-    print(group.name, group.tcp_port)
-
-    for usb in server.usb_ports:
-        print(usb.virtual_port)
+    group = Group(server.name, server.tcp_port, server.usb_ports)
+    click.secho(group)

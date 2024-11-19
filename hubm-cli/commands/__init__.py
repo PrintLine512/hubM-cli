@@ -3,6 +3,7 @@ import sys
 from functools import wraps
 
 import click
+import sqlalchemy.exc
 
 from database import Session
 
@@ -20,13 +21,19 @@ class ExitCode:
 logger = logging.getLogger(__name__)
 
 class Group:
-    def __init__(self, name, tcp_port, usb: []):
+    def __init__(self, name, tcp_port, usb_ports: []):
         self.name = name
         self.tcp_port = tcp_port
-        self.usb = usb
+        self.usb_ports = usb_ports
 
     def __repr__(self):
-        return self.name, self.tcp_port, self.usb
+        usb_details = "\n".join(
+            f"  - Name: {usb.name}, Virtual Port: {usb.virtual_port}, Bus: {usb.bus}"
+            for usb in self.usb_ports
+        ) or "  None"
+        return (f"Server: {self.name}\n"
+                f"TCP port: {self.tcp_port}\n"
+                f"USB ports: \n{usb_details}")
 
 
 def handle_work(func):
@@ -44,6 +51,11 @@ def handle_work(func):
                 click.secho("Операция успешно завершена.", fg="green")
             session.commit()
             sys.exit(ExitCode.SUCCESS)
+        except sqlalchemy.exc.IntegrityError as e:
+            click.secho(f"Ошибка валидации данных: {e}", fg="red")
+            logger.log(logging.ERROR, f"Error in {func.__name__}: Validation error {str(e)}", exc_info=True)
+            session.rollback()
+            sys.exit(ExitCode.VALIDATION_ERROR)
         except ValueError as e:
             click.secho(f"Ошибка валидации данных: {e}", fg="red")
             logger.log(logging.ERROR, f"Error in {func.__name__}: Validation error {str(e)}", exc_info=True)

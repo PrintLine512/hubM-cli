@@ -1,8 +1,10 @@
+import configparser
 import logging
-import sys
+import sys, os
+from pathlib import Path
 
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import click
-
 from commands import config_cli, user_cli, usb_cli, group_cli
 
 
@@ -53,6 +55,17 @@ cli.add_command(config_cli)
 
 # Запуск CLI
 def main():
+    base_path = Path("/etc/hubm")
+    base_path.mkdir(parents=True, exist_ok=True)
+    config_path = base_path / "config.ini"
+    config = configparser.ConfigParser()
+    if not config_path.exists():
+        config[ 'DEFAULT' ] = {
+            'db_url': ""
+        }
+        with open(config_path, 'w') as file:
+            config.write(file)
+
     cli(obj={})
 
 if __name__ == '__main__':
